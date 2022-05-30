@@ -1,0 +1,38 @@
+version: '3.4'
+
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-CU5-ubuntu-18.04
+    ports:
+    - 1433:1433
+    command: bash -c "/home/mssql/sql/init.sh"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: Certum#01
+    volumes:
+      - ./sql/:/home/mssql/sql/
+  producer:
+    depends_on: 
+      - sql-server
+    image: containersoga/producer
+    build:
+      context: Enrollment/demo/
+      dockerfile: Dockerfile
+    environment:
+      BD_HOST: 192.168.1.180
+      BD_USER: sa
+      BD_PASSWORD: Certum#01
+      KAFKA_HOST: 192.168.1.180
+    ports:
+      - 8080:8080
+  consumer:
+    depends_on: 
+      - producer
+    image: containersoga/consumer
+    build:
+      context: Store/store/
+      dockerfile: Dockerfile
+    environment:
+      KAFKA_HOST: 192.168.1.180
+    ports:
+      - 8082:8082

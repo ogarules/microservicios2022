@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: organization
+spec:
+  selector:
+    matchLabels:
+      app: organization
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: organization
+        version: v1
+    spec:
+      containers:
+        - name: organization
+          image: containersoga/organization
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGO_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: mongodb
+                  key: database-name
+            - name: MONGO_USERNAME 
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-user
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: database-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: organization
+  labels:
+    app: organization
+spec:
+  selector:
+    app: organization
+  ports:
+  - port: 8081
+    targetPort: 8080
+    protocol: TCP
+    name: http
+#  type: LoadBalancer
